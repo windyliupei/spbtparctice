@@ -5,11 +5,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class ExcelController {
+public class IndexController {
 
     @GetMapping(value = "index")
-    public String build()
+    public String index()
     {
+        //Go to upload File page
         return "uploadFile";
     }
 
