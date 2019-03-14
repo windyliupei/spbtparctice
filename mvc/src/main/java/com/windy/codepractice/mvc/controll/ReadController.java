@@ -44,18 +44,18 @@ public class ReadController {
         ajaxResult.put("code", 0);
         ajaxResult.put("msg", "success");
 
-        ExcelData excelData = readExcel3(file);
-
-        String filePath = "C:\\WorkSpace\\RelateProject\\Saas\\私自\\戴姆勒\\Templates\\Templates\\Contract\\DAG-Importer-Dealer..xls";
-        ExcelData excelData2 =readExcel2(filePath);
-        Cell cell = excelData2.getCell(0, "A1");
+//        ExcelData excelData = readExcel3(file);
+//
+        String filePath = "C:\\WorkSpace\\RelateProject\\Saas\\私自\\戴姆勒\\Templates\\Templates\\Contract\\CIP.xls";
+//        ExcelData excelData2 =readExcel2(filePath);
+//        Cell cell = excelData2.getCell(0, "A1");
 
 
         ExcelData.writeExcel(filePath,filePath,0,"A1","new value");
 
-        Cell a1 = excelData.getCell(0, "A1");
-        CellRange cellRange = new CellRange("A1","B3");
-        List<Cell> cells = excelData.getCells(0, cellRange);
+//        Cell a1 = excelData.getCell(0, "A1");
+//        CellRange cellRange = new CellRange("A1","B3");
+//        List<Cell> cells = excelData.getCells(0, cellRange);
 
 
         //success
