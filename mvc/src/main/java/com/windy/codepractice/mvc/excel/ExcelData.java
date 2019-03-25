@@ -124,9 +124,6 @@ public class ExcelData {
     }
 
 
-
-
-
     /**
      * 根据文件路径获取Workbook对象
      * @param filePath 文件全路径
@@ -156,7 +153,10 @@ public class ExcelData {
      * 根据文件路径获取Workbook对象
      * @param file 上传文件
      */
-    public static Workbook getWorkBook(MultipartFile file) {
+    public static Workbook getWorkBook(MultipartFile file) throws IOException {
+
+        checkFile(file);
+
         //获得文件名
         String fileName = file.getOriginalFilename();
         //创建Workbook工作薄对象，表示整个excel
@@ -208,6 +208,32 @@ public class ExcelData {
         return success;
     }
 
+    public static boolean writeExcel(MultipartFile file,String outPath, Integer sheetIndex, String cellAddress,String newValue) throws IOException, InvalidFormatException {
+        Boolean success = false;
+
+        //读取原始Excel
+        Workbook workBook = getWorkBook(file);
+        ExcelData excelData = new ExcelData();
+        excelData.setWorkbook(workBook);
+
+        //查找Cell并更新值
+        Cell cell = excelData.getCell(sheetIndex, cellAddress);
+        cell.setCellValue(newValue);
+
+        //保存
+        String outputFile = outPath+file.getOriginalFilename();
+        File tobeWriteFile = new File(outPath,file.getOriginalFilename());
+        if (!tobeWriteFile.exists()){
+            tobeWriteFile.createNewFile();
+        }
+        FileOutputStream excelFileOutPutStream = new FileOutputStream(outputFile);
+        workBook.write(excelFileOutPutStream);
+        excelFileOutPutStream.flush();
+        excelFileOutPutStream.close();
+        //否则source文件的流始终被占
+        file.getInputStream().close();
+        return success;
+    }
 
     private static void checkFile(MultipartFile file) throws IOException{
         //判断文件是否存在
