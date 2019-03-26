@@ -1,6 +1,7 @@
 package com.windy.codepractice.mvc.excel;
 //ref:https://www.cnblogs.com/dzpykj/p/8417738.html
 import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -13,6 +14,11 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
+
+import static org.apache.poi.ss.usermodel.CellType.STRING;
 
 public class ExcelData {
 
@@ -273,6 +279,77 @@ public class ExcelData {
         return success;
     }
 
+    public static boolean convertPdf(String sourceExcelPath,String destPdfPath,int sheetIndex) throws IOException, DocumentException {
+
+        //Read excel
+        FileInputStream input_document = new FileInputStream(new File(sourceExcelPath));
+        //根据文件后缀名不同(xls和xlsx)获得不同的Workbook实现类对象
+        Workbook workbook=null;
+        if(sourceExcelPath.endsWith(OFFICE_EXCEL_XLS)){
+            //2003
+            workbook =  new HSSFWorkbook(input_document);
+        }else if(sourceExcelPath.endsWith(OFFICE_EXCEL_XLSX)){
+            //2007
+            workbook = new XSSFWorkbook(input_document);
+        }
+        Sheet my_worksheet = workbook.getSheetAt(sheetIndex);
+        Iterator<Row> rowIterator = my_worksheet.iterator();
+
+        //Create PDF
+        Document iText_xls_2_pdf = new Document(PageSize.A4,0f,0f,0f,0f);
+        PdfWriter.getInstance(iText_xls_2_pdf, new FileOutputStream(destPdfPath+"Excel2PDF_Output.pdf"));
+        iText_xls_2_pdf.open();
+
+        //Write PDF
+        PdfPTable my_table = new PdfPTable(1);
+        PdfPCell table_cell;
+
+        //Loop through rows.
+        while(rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            Iterator<Cell> cellIterator = row.cellIterator();
+            while(cellIterator.hasNext()) {
+                Cell cell = cellIterator.next(); //Fetch CELL
+                switch(cell.getCellType()) { //Identify CELL type
+                    case _NONE:
+                        break;
+                    case NUMERIC:
+                        table_cell=new PdfPCell(new Phrase(Float.parseFloat(String.valueOf(cell.getNumericCellValue()))));
+                        my_table.addCell(table_cell);
+                        break;
+                    case STRING:
+                        table_cell=new PdfPCell(new Phrase(cell.getStringCellValue()));
+                        my_table.addCell(table_cell);
+                        break;
+                    case FORMULA:
+                        break;
+                    case BLANK:
+                        break;
+                    case BOOLEAN:
+                        table_cell=new PdfPCell(new Phrase(cell.getStringCellValue()));
+                        my_table.addCell(table_cell);
+                        break;
+                    case ERROR:
+                        break;
+                    default:
+                        table_cell=new PdfPCell(new Phrase(cell.getStringCellValue()));
+                        my_table.addCell(table_cell);
+                        break;
+                }
+                //next line
+            }
+        }
+
+        //Save PDF
+        //Finally add the table to PDF document
+        iText_xls_2_pdf.add(my_table);
+        iText_xls_2_pdf.close();
+        //we created our pdf file..
+        input_document.close(); //close xls
+        return false;
+    }
+
+
     private static void checkFile(MultipartFile file) throws IOException{
         //判断文件是否存在
         if(null == file){
@@ -329,4 +406,6 @@ public class ExcelData {
         }
         return cells;
     }
+
+
 }

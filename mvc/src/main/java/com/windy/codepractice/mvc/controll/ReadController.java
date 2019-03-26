@@ -1,5 +1,6 @@
 package com.windy.codepractice.mvc.controll;
 
+import com.itextpdf.text.DocumentException;
 import com.windy.codepractice.mvc.AjaxResult;
 import com.windy.codepractice.mvc.excel.ExcelData;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -29,7 +30,7 @@ public class ReadController {
 
     @PostMapping("read")
     @ResponseBody
-    public AjaxResult read(@RequestParam("file") MultipartFile file, HttpServletResponse resp) throws IOException, InvalidFormatException {
+    public AjaxResult read(@RequestParam("file") MultipartFile file, HttpServletResponse resp) throws IOException, InvalidFormatException, DocumentException {
 
 
 
@@ -40,7 +41,8 @@ public class ReadController {
 
         if (StringUtils.isEmpty(file.getOriginalFilename())){
             //给定路径写文件
-            ExcelData.writeExcel(testFile,testFile,0,"D24","new value"+System.currentTimeMillis());
+            //ExcelData.writeExcel(testFile,testFile,0,"D24","new value"+System.currentTimeMillis());
+            ExcelData.convertPdf(testFile,outputPath,1);
         }else{
             //写流文件
             ExcelData.writeExcel(file, outputPath,0,"D26","new Value"+System.currentTimeMillis());
