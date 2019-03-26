@@ -9,7 +9,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -128,7 +127,7 @@ public class ExcelData {
      * 根据文件路径获取Workbook对象
      * @param filePath 文件全路径
      */
-    public static Workbook getWorkBook(String filePath)
+    public static Workbook getWorkBookWithoutClose(String filePath)
             throws EncryptedDocumentException, InvalidFormatException, IOException {
         InputStream is = null;
         Workbook wb = null;
@@ -153,7 +152,7 @@ public class ExcelData {
      * 根据文件路径获取Workbook对象
      * @param file 上传文件
      */
-    public static Workbook getWorkBook(MultipartFile file) throws IOException {
+    public static Workbook getWorkBookWithoutClose(MultipartFile file) throws IOException {
 
         checkFile(file);
 
@@ -191,13 +190,25 @@ public class ExcelData {
         Boolean success = false;
 
         //读取原始Excel
-        Workbook workBook = getWorkBook(inPath);
+        Workbook workBook = getWorkBookWithoutClose(inPath);
         ExcelData excelData = new ExcelData();
         excelData.setWorkbook(workBook);
 
-        //查找Cell并更新值
+        //查找/创建 Cell并更新值
         Cell cell = excelData.getCell(sheetIndex, cellAddress);
-        cell.setCellValue(newValue);
+        if (cell!=null){
+            cell.setCellValue(newValue);
+        }else{
+            Sheet sheetAt = workBook.getSheetAt(sheetIndex);
+            if (sheetAt==null){
+                //log here
+                return false;
+            }else {
+                Integer columnIndex = CellRange.getColumnIndex(cellAddress);
+                Integer rowIdex     = CellRange.getRowIndex(cellAddress);
+                sheetAt.createRow(rowIdex).createCell(columnIndex).setCellValue(newValue);
+            }
+        }
 
         //保存
         FileOutputStream excelFileOutPutStream = new FileOutputStream(outPath);
@@ -207,26 +218,53 @@ public class ExcelData {
 
         return success;
     }
-
+    /**
+     * 创建Excel文件
+     * @param  file 上传的文件
+     * @param outPath 新路径
+     * @param sheetIndex sheet index
+     * @param cellAddress 单元格的Address
+     * @param newValue 新的值
+     */
     public static boolean writeExcel(MultipartFile file,String outPath, Integer sheetIndex, String cellAddress,String newValue) throws IOException, InvalidFormatException {
         Boolean success = false;
 
         //读取原始Excel
-        Workbook workBook = getWorkBook(file);
+        Workbook workBook = getWorkBookWithoutClose(file);
         ExcelData excelData = new ExcelData();
         excelData.setWorkbook(workBook);
 
-        //查找Cell并更新值
+        //查找/创建 Cell并更新值
         Cell cell = excelData.getCell(sheetIndex, cellAddress);
-        cell.setCellValue(newValue);
+        if (cell!=null){
+            cell.setCellValue(newValue);
+        }else{
+            Sheet sheetAt = workBook.getSheetAt(sheetIndex);
+            if (sheetAt==null){
+                //log here
+                return false;
+            }else {
+                Integer columnIndex = CellRange.getColumnIndex(cellAddress);
+                Integer rowIdex     = CellRange.getRowIndex(cellAddress);
+                sheetAt.createRow(rowIdex).createCell(columnIndex).setCellValue(newValue);
 
+            }
+        }
+
+        //不同浏览器file.getOriginalFilename()不一样，Chrome只有文件名 edge包含路径名
+        String outputFile;
+        if (file.getOriginalFilename().contains(File.separator)){
+            outputFile = StringUtils.substring(file.getOriginalFilename(),file.getOriginalFilename().lastIndexOf(File.separator)+1);
+        }else{
+            outputFile = file.getOriginalFilename();
+        }
+        String outputFilepath = outPath+outputFile;
         //保存
-        String outputFile = outPath+file.getOriginalFilename();
-        File tobeWriteFile = new File(outPath,file.getOriginalFilename());
+        File tobeWriteFile = new File(outPath,outputFile);
         if (!tobeWriteFile.exists()){
             tobeWriteFile.createNewFile();
         }
-        FileOutputStream excelFileOutPutStream = new FileOutputStream(outputFile);
+        FileOutputStream excelFileOutPutStream = new FileOutputStream(outputFilepath);
         workBook.write(excelFileOutPutStream);
         excelFileOutPutStream.flush();
         excelFileOutPutStream.close();

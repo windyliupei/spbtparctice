@@ -66,12 +66,12 @@ public class CellRange {
         return false;
     }
 
-    private int getRowIndex(String address){
+    public static int getRowIndex(String address){
         String[] rowColumn = getRowColumn(address);
         return Integer.parseInt(rowColumn[1])-1;
     }
 
-    private String[] getRowColumn(String address) {
+    private static String[] getRowColumn(String address) {
         int firstDigitIndex = 0;
         char[] split = address.toCharArray();
 
@@ -89,7 +89,7 @@ public class CellRange {
         return addressSplit;
     }
 
-    private int getColumnIndex(String address){
+    public static int getColumnIndex(String address){
         String[] rowColumn = getRowColumn(address);
 
         HashMap<String,Integer> indexAlphaMapping = ColumnAlphaMapping.getIndexAlphaMapping();

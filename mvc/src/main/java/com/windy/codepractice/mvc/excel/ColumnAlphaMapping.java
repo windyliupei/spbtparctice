@@ -14,8 +14,6 @@ public class ColumnAlphaMapping {
         String[] alphaArray = new String[] {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X",
                 "Y","Z",};
         String[] limitColumn = new String[] {"A","B","C","D","E","F","G","H","I"};
-        List<String> alphaList = Arrays.asList(alphaArray);
-
 
         for (String s:alphaArray) {
             indexAlphaMapping.put(s,index);

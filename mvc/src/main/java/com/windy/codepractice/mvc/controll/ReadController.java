@@ -15,11 +15,14 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+//import com.itextpdf.text.*;
+//import com.itextpdf.text.pdf.*;
+
 @Controller
 public class ReadController {
 
-    @Value("${excel.outFilePath}")
-    String outFilePath;
+    @Value("${excel.outputPath}")
+    String outputPath;
 
     @Value("${excel.test.filePath}")
     String testFile;
@@ -40,7 +43,7 @@ public class ReadController {
             ExcelData.writeExcel(testFile,testFile,0,"D24","new value"+System.currentTimeMillis());
         }else{
             //写流文件
-            ExcelData.writeExcel(file,outFilePath,0,"D26","new Value"+System.currentTimeMillis());
+            ExcelData.writeExcel(file, outputPath,0,"D26","new Value"+System.currentTimeMillis());
         }
 
         //success
@@ -52,7 +55,7 @@ public class ReadController {
     public static ExcelData readExcel3(MultipartFile file) throws IOException {
 
         //获得Workbook工作薄对象
-        Workbook workbook = ExcelData.getWorkBook(file);
+        Workbook workbook = ExcelData.getWorkBookWithoutClose(file);
         ExcelData excelData = new ExcelData();
         excelData.setWorkbook(workbook);
         return excelData;
@@ -61,7 +64,7 @@ public class ReadController {
     public static ExcelData readExcel2(String filePath) throws IOException, InvalidFormatException {
 
         //获得Workbook工作薄对象
-        Workbook workbook = ExcelData.getWorkBook(filePath);
+        Workbook workbook = ExcelData.getWorkBookWithoutClose(filePath);
         ExcelData excelData = new ExcelData();
         excelData.setWorkbook(workbook);
         return excelData;
