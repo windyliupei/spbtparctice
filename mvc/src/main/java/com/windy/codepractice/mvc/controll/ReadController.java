@@ -72,7 +72,7 @@ public class ReadController {
         //1.下载jacob-1.18-M2.zip
         //2.解压出 jacob.jar 和 jacob-1.18-M2-x64.dll 放到这个项目中的src目录
         //3. idea->file-?project structure->Libraies 添加src\jacob.jar。
-        ExcelData.convertExcel2Pdf(testFile,pdfFile);
+        ExcelData.convertExcel2Pdf(testFile,2,pdfFile);
 
         //success
         return ajaxResult;

@@ -323,6 +323,47 @@ public class ExcelData {
         return true;
     }
 
+    public static boolean convertExcel2Pdf(String inputFile,Integer sheetIndex,String pdfFile){
+        //打开Excel应用程序
+        ActiveXComponent app = new ActiveXComponent("Excel.Application");
+        //设置Excel不可见
+        app.setProperty("Visible", false);
+        //设置Excel不可见,返回Workbooks对象
+        Dispatch excels = app.getProperty("Workbooks").toDispatch();
+        Dispatch excel = Dispatch.call(excels,
+                "Open",//调用Documents对象的Open方法
+                inputFile,// 输入文件路径全名
+                false,//ConfirmConversions，设置为false表示不显示转换框
+                true//ReadOnly
+        ).toDispatch();
+
+        Dispatch sheets = Dispatch.get(excel, "Sheets").toDispatch();
+        // 获得几个sheet
+        int count = Dispatch.get(sheets, "Count").getInt();
+        //sheet 不能大于 sheet 总数
+        if (sheetIndex>=count){
+            return false;
+        }
+
+        Dispatch sheet = Dispatch
+                .invoke(sheets, "Item", Dispatch.Get, new Object[] { new Integer(sheetIndex) }, new int[1])
+                .toDispatch();
+
+//        Dispatch.call(excel,
+//                "ExportAsFixedFormat",
+//                xlTypePDF,
+//                pdfFile
+        Dispatch.call(sheet,
+                "ExportAsFixedFormat",
+                xlTypePDF,
+                pdfFile
+        );
+        Dispatch.call(excel, "Close",false);
+        app.invoke("Quit");
+
+        return true;
+    }
+
 
     private static void checkFile(MultipartFile file) throws IOException{
         //判断文件是否存在
