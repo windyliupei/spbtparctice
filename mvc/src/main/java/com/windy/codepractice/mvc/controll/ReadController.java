@@ -5,6 +5,9 @@ import com.windy.codepractice.mvc.AjaxResult;
 import com.windy.codepractice.mvc.excel.ExcelData;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.artofsolving.jodconverter.OfficeDocumentConverter;
+import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
+import org.artofsolving.jodconverter.office.OfficeManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -14,7 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io.*;
 
 //import com.itextpdf.text.*;
 //import com.itextpdf.text.pdf.*;
@@ -22,11 +25,18 @@ import java.io.IOException;
 @Controller
 public class ReadController {
 
+    private static final String OFFICE_HOME = "C:/Program Files (x86)/OpenOffice 4";
+    private static final Integer PORT = 8100;
+    private static OfficeManager officeManager;
+
     @Value("${excel.outputPath}")
     String outputPath;
 
     @Value("${excel.test.filePath}")
     String testFile;
+
+    @Value("${excel.test.pdfFilePath}")
+    String pdfFile;
 
     @PostMapping("read")
     @ResponseBody
@@ -39,13 +49,23 @@ public class ReadController {
         ajaxResult.put("code", 0);
         ajaxResult.put("msg", "success");
 
-        if (StringUtils.isEmpty(file.getOriginalFilename())){
-            //给定路径写文件
-            //ExcelData.writeExcel(testFile,testFile,0,"D24","new value"+System.currentTimeMillis());
-            ExcelData.convertPdf(testFile,outputPath,1);
-        }else{
-            //写流文件
-            ExcelData.writeExcel(file, outputPath,0,"D26","new Value"+System.currentTimeMillis());
+//        if (StringUtils.isEmpty(file.getOriginalFilename())){
+//            //给定路径写文件
+//            ExcelData.writeExcel(testFile,testFile,0,"E26","5.789");
+//        }else{
+//            //写流文件
+//            ExcelData.writeExcel(file, outputPath,0,"E26","5");
+//        }
+
+        //先安装 Openoffice 调用 它的服务去进行转换（效果不好）
+        try{
+            startService();
+            System.out.println("进行文档转换转换:" + testFile + " --> " + pdfFile);
+            OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+            converter.convert(new File(testFile), new File(pdfFile));
+        }
+        finally {
+            stopService();
         }
 
         //success
@@ -54,22 +74,51 @@ public class ReadController {
 
 
 
-    public static ExcelData readExcel3(MultipartFile file) throws IOException {
 
-        //获得Workbook工作薄对象
-        Workbook workbook = ExcelData.getWorkBookWithoutClose(file);
-        ExcelData excelData = new ExcelData();
-        excelData.setWorkbook(workbook);
-        return excelData;
+
+    @PostMapping("upload")
+    @ResponseBody
+    public String upload(@RequestParam("file") MultipartFile file) throws IOException {
+        //soffice -headless -accept="socket,host=127.0.0.1,port=8100;urp;" -nofirststartwizard
+        startService();
+        System.out.println("进行文档转换转换:" + testFile + " --> " + pdfFile);
+
+        OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+        converter.convert(new File(testFile), new File(pdfFile));
+
+        stopService();
+        System.out.println();
+
+        return "";
     }
 
-    public static ExcelData readExcel2(String filePath) throws IOException, InvalidFormatException {
+    // 打开服务器
+    public static void startService() {
+        DefaultOfficeManagerConfiguration configuration = new DefaultOfficeManagerConfiguration();
+        try {
+            //RUN this at first: soffice -headless -accept="socket,host=127.0.0.1,port=8100;urp;" -nofirststartwizard
+            System.out.println("准备启动服务....");
 
-        //获得Workbook工作薄对象
-        Workbook workbook = ExcelData.getWorkBookWithoutClose(filePath);
-        ExcelData excelData = new ExcelData();
-        excelData.setWorkbook(workbook);
-        return excelData;
+            configuration.setOfficeHome(OFFICE_HOME);// 设置OpenOffice.org安装目录
+            configuration.setPortNumbers(PORT); // 设置转换端口，默认为8100
+            configuration.setTaskExecutionTimeout(1000 * 60 * 5L);// 设置任务执行超时为5分钟
+            configuration.setTaskQueueTimeout(1000 * 60 * 60 * 24L);// 设置任务队列超时为24小时
+
+            officeManager = configuration.buildOfficeManager();
+            officeManager.start(); // 启动服务
+            System.out.println("office转换服务启动成功!");
+        } catch (Exception ce) {
+            System.out.println("office转换服务启动失败!详细信息:" + ce);
+        }
+    }
+
+    // 关闭服务器
+    public static void stopService() {
+        System.out.println("关闭office转换服务....");
+        if (officeManager != null) {
+            officeManager.stop();
+        }
+        System.out.println("关闭office转换成功!");
     }
 
 

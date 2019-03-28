@@ -279,74 +279,21 @@ public class ExcelData {
         return success;
     }
 
-    public static boolean convertPdf(String sourceExcelPath,String destPdfPath,int sheetIndex) throws IOException, DocumentException {
+    public static ExcelData readExcel(MultipartFile file) throws IOException {
+        //获得Workbook工作薄对象
+        Workbook workbook = ExcelData.getWorkBookWithoutClose(file);
+        ExcelData excelData = new ExcelData();
+        excelData.setWorkbook(workbook);
+        return excelData;
+    }
 
-        //Read excel
-        FileInputStream input_document = new FileInputStream(new File(sourceExcelPath));
-        //根据文件后缀名不同(xls和xlsx)获得不同的Workbook实现类对象
-        Workbook workbook=null;
-        if(sourceExcelPath.endsWith(OFFICE_EXCEL_XLS)){
-            //2003
-            workbook =  new HSSFWorkbook(input_document);
-        }else if(sourceExcelPath.endsWith(OFFICE_EXCEL_XLSX)){
-            //2007
-            workbook = new XSSFWorkbook(input_document);
-        }
-        Sheet my_worksheet = workbook.getSheetAt(sheetIndex);
-        Iterator<Row> rowIterator = my_worksheet.iterator();
+    public static ExcelData readExcel(String filePath) throws IOException, InvalidFormatException {
 
-        //Create PDF
-        Document iText_xls_2_pdf = new Document(PageSize.A4,0f,0f,0f,0f);
-        PdfWriter.getInstance(iText_xls_2_pdf, new FileOutputStream(destPdfPath+"Excel2PDF_Output.pdf"));
-        iText_xls_2_pdf.open();
-
-        //Write PDF
-        PdfPTable my_table = new PdfPTable(1);
-        PdfPCell table_cell;
-
-        //Loop through rows.
-        while(rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-            Iterator<Cell> cellIterator = row.cellIterator();
-            while(cellIterator.hasNext()) {
-                Cell cell = cellIterator.next(); //Fetch CELL
-                switch(cell.getCellType()) { //Identify CELL type
-                    case _NONE:
-                        break;
-                    case NUMERIC:
-                        table_cell=new PdfPCell(new Phrase(Float.parseFloat(String.valueOf(cell.getNumericCellValue()))));
-                        my_table.addCell(table_cell);
-                        break;
-                    case STRING:
-                        table_cell=new PdfPCell(new Phrase(cell.getStringCellValue()));
-                        my_table.addCell(table_cell);
-                        break;
-                    case FORMULA:
-                        break;
-                    case BLANK:
-                        break;
-                    case BOOLEAN:
-                        table_cell=new PdfPCell(new Phrase(cell.getStringCellValue()));
-                        my_table.addCell(table_cell);
-                        break;
-                    case ERROR:
-                        break;
-                    default:
-                        table_cell=new PdfPCell(new Phrase(cell.getStringCellValue()));
-                        my_table.addCell(table_cell);
-                        break;
-                }
-                //next line
-            }
-        }
-
-        //Save PDF
-        //Finally add the table to PDF document
-        iText_xls_2_pdf.add(my_table);
-        iText_xls_2_pdf.close();
-        //we created our pdf file..
-        input_document.close(); //close xls
-        return false;
+        //获得Workbook工作薄对象
+        Workbook workbook = ExcelData.getWorkBookWithoutClose(filePath);
+        ExcelData excelData = new ExcelData();
+        excelData.setWorkbook(workbook);
+        return excelData;
     }
 
 
