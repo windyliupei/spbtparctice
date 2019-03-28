@@ -57,16 +57,22 @@ public class ReadController {
 //            ExcelData.writeExcel(file, outputPath,0,"E26","5");
 //        }
 
-        //先安装 Openoffice 调用 它的服务去进行转换（效果不好）
-        try{
-            startService();
-            System.out.println("进行文档转换转换:" + testFile + " --> " + pdfFile);
-            OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
-            converter.convert(new File(testFile), new File(pdfFile));
-        }
-        finally {
-            stopService();
-        }
+// 先安装 Openoffice 调用 它的服务去进行转换（效果不好）
+//        try{
+//            startService();
+//            System.out.println("进行文档转换转换:" + testFile + " --> " + pdfFile);
+//            OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+//            converter.convert(new File(testFile), new File(pdfFile));
+//        }
+//        finally {
+//            stopService();
+//        }
+
+        ///refer:http://www.cnblogs.com/luckyxiaoxuan/archive/2012/06/13/2548331.html
+        //1.下载jacob-1.18-M2.zip
+        //2.解压出 jacob.jar 和 jacob-1.18-M2-x64.dll 放到这个项目中的src目录
+        //3. idea->file-?project structure->Libraies 添加src\jacob.jar。
+        ExcelData.convertExcel2Pdf(testFile,pdfFile);
 
         //success
         return ajaxResult;

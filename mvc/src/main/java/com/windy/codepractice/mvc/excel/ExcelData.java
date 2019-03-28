@@ -1,5 +1,7 @@
 package com.windy.codepractice.mvc.excel;
 //ref:https://www.cnblogs.com/dzpykj/p/8417738.html
+import com.jacob.activeX.ActiveXComponent;
+import com.jacob.com.Dispatch;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -24,6 +26,7 @@ public class ExcelData {
 
     private final static String OFFICE_EXCEL_XLS = "xls";
     private final static String OFFICE_EXCEL_XLSX = "xlsx";
+    private static final int xlTypePDF = 0;
 
     private Workbook workbook;
 
@@ -294,6 +297,30 @@ public class ExcelData {
         ExcelData excelData = new ExcelData();
         excelData.setWorkbook(workbook);
         return excelData;
+    }
+
+    public static boolean convertExcel2Pdf(String inputFile,String pdfFile){
+        //打开Excel应用程序
+        ActiveXComponent app = new ActiveXComponent("Excel.Application");
+        //设置Excel不可见
+        app.setProperty("Visible", false);
+        //设置Excel不可见,返回Workbooks对象
+        Dispatch excels = app.getProperty("Workbooks").toDispatch();
+        Dispatch excel = Dispatch.call(excels,
+                "Open",//调用Documents对象的Open方法
+                inputFile,// 输入文件路径全名
+                false,//ConfirmConversions，设置为false表示不显示转换框
+                true//ReadOnly
+        ).toDispatch();
+        Dispatch.call(excel,
+                "ExportAsFixedFormat",
+                xlTypePDF,
+                pdfFile
+        );
+        Dispatch.call(excel, "Close",false);
+        app.invoke("Quit");
+
+        return true;
     }
 
 
