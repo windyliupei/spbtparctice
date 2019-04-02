@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_package = "com.windy.codepractice.grpclib";
+
+// The Daimler service definition.
+service Contract {
+
+    rpc SayDaimler ( ContractRequest) returns (  ContractReply) {}
+
+}
+
+message ContractRequest {
+    string contra_id = 1;
+}
+
+message ContractReply {
+    string message = 1;
+}

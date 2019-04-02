@@ -3,11 +3,13 @@ package com.windy.codepractice.mvc.controll;
 import com.itextpdf.text.DocumentException;
 import com.windy.codepractice.mvc.AjaxResult;
 import com.windy.codepractice.mvc.excel.ExcelData;
+import com.windy.codepractice.mvc.service.GrpcClientService;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -37,6 +39,9 @@ public class ReadController {
 
     @Value("${excel.test.pdfFilePath}")
     String pdfFile;
+
+    @Autowired
+    GrpcClientService grpcClientService;
 
     @PostMapping("read")
     @ResponseBody
@@ -72,8 +77,8 @@ public class ReadController {
         //1.下载jacob-1.18-M2.zip
         //2.解压出 jacob.jar 和 jacob-1.18-M2-x64.dll 放到这个项目中的src目录
         //3. idea->file-?project structure->Libraies 添加src\jacob.jar。
-        ExcelData.convertExcel2Pdf(testFile,2,pdfFile);
-
+        //ExcelData.convertExcel2Pdf(testFile,2,pdfFile);
+        String result = grpcClientService.sendMessage("ali");
         //success
         return ajaxResult;
     }
