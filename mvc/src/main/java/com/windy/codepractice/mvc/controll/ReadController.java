@@ -78,7 +78,8 @@ public class ReadController {
         //2.解压出 jacob.jar 和 jacob-1.18-M2-x64.dll 放到这个项目中的src目录
         //3. idea->file-?project structure->Libraies 添加src\jacob.jar。
         //ExcelData.convertExcel2Pdf(testFile,2,pdfFile);
-        String result = grpcClientService.sendMessage("ali");
+        //String result = grpcClientService.sendMessage("ali");
+        String result = grpcClientService.entityByName("ali").toString();
         //success
         return ajaxResult;
     }
