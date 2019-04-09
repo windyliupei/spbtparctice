@@ -423,4 +423,18 @@ public class ExcelData {
     }
 
 
+    public Integer getColumnCount(int sheetIndex){
+        if (null!=this.getWorkbook()){
+            Sheet sheet = this.getWorkbook().getSheetAt(sheetIndex);
+            if (null!=sheet){
+                Iterator<Row> rowIterator = sheet.rowIterator();
+                while (rowIterator.hasNext()) {
+                    Row row = rowIterator.next();
+                    return Integer.valueOf(row.getLastCellNum());
+                }
+            }
+        }
+        return 0;
+    }
+
 }

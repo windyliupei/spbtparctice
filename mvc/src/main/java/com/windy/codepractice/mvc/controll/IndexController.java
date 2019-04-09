@@ -13,5 +13,4 @@ public class IndexController {
         //Go to upload File page
         return "uploadFile";
     }
-
 }

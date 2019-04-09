@@ -4,7 +4,11 @@ import com.itextpdf.text.DocumentException;
 import com.windy.codepractice.mvc.AjaxResult;
 import com.windy.codepractice.mvc.excel.ExcelData;
 import com.windy.codepractice.mvc.service.GrpcClientService;
+import com.windy.codepractice.mvc.service.ItextPDFService;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
@@ -20,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.Iterator;
 
 //import com.itextpdf.text.*;
 //import com.itextpdf.text.pdf.*;
@@ -40,8 +45,17 @@ public class ReadController {
     @Value("${excel.test.pdfFilePath}")
     String pdfFile;
 
+    @Value("${excel.test.pdfOutFilePath}")
+    String pdfOutFile;
+
+    @Value("${pdf.test.filePath}")
+    String pdfPath;
+
     @Autowired
     GrpcClientService grpcClientService;
+
+    @Autowired
+    ItextPDFService itextPDFService;
 
     @PostMapping("read")
     @ResponseBody
@@ -50,9 +64,22 @@ public class ReadController {
 
 
         AjaxResult ajaxResult = new AjaxResult();
-        ajaxResult.put("data",file.getOriginalFilename());
+        ajaxResult.put("data",file == null ? "": file.getOriginalFilename());
         ajaxResult.put("code", 0);
         ajaxResult.put("msg", "success");
+
+//        ExcelData excelData = ExcelData.readExcel(testFile);
+//
+//        Sheet sheet = excelData.getWorkbook().getSheet("Contract-read only");
+//        int rowCount = sheet.getLastRowNum()+1;
+//        int colCount = excelData.getColumnCount(1);
+//
+//        Iterator<Row> rowIterator = sheet.rowIterator();
+//        while (rowIterator.hasNext()) {
+//            Row row = rowIterator.next();
+//            float rowPixHeight = (row.getHeightInPoints() / 72) * 96;
+//            int rowNUm =  row.getRowNum();
+//        }
 
 //        if (StringUtils.isEmpty(file.getOriginalFilename())){
 //            //给定路径写文件
@@ -73,13 +100,21 @@ public class ReadController {
 //            stopService();
 //        }
 
+        //调用 组件 转换 PDF
         ///refer:http://www.cnblogs.com/luckyxiaoxuan/archive/2012/06/13/2548331.html
         //1.下载jacob-1.18-M2.zip
         //2.解压出 jacob.jar 和 jacob-1.18-M2-x64.dll 放到这个项目中的src目录
         //3. idea->file-?project structure->Libraies 添加src\jacob.jar。
         //ExcelData.convertExcel2Pdf(testFile,2,pdfFile);
+
+
+        //Grpc
         //String result = grpcClientService.sendMessage("ali");
-        String result = grpcClientService.entityByName("ali").toString();
+        //String result = grpcClientService.entityByName("ali").toString();
+
+        itextPDFService.writePdf(pdfPath,pdfOutFile);
+
+
         //success
         return ajaxResult;
     }
