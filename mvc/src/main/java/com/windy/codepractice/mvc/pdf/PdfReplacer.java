@@ -1,14 +1,9 @@
 package com.windy.codepractice.mvc.pdf;
 
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
@@ -26,38 +21,50 @@ public class PdfReplacer {
     private static final Logger logger = LoggerFactory.getLogger(PdfReplacer.class);
 
     private int fontSize;
-    private Map<String, ReplaceRegion> replaceRegionMap = new HashMap<String, ReplaceRegion>();
-    private Map<String, Object> replaceTextMap =new HashMap<String, Object>();
+    private Map<Integer, Collection<ReplaceRegion>> pageRegions;
+    private PdfPositionParse parse;
     private ByteArrayOutputStream output;
     private PdfReader reader;
     private PdfStamper stamper;
-    private PdfContentByte canvas;
+    private List<PdfContentByte> canvases = new ArrayList<>();
     private Font font;
+    private byte[] pdfBytes;
 
     public PdfReplacer(byte[] pdfBytes) throws DocumentException, IOException{
-        init(pdfBytes);
+        this.pdfBytes = pdfBytes;
+        init();
+    }
+
+    public PdfReplacer(InputStream in)  throws DocumentException, IOException{
+        pdfBytes = new byte[in.available()];
+        in.read(pdfBytes);
+        init();
     }
 
     public PdfReplacer(String fileName) throws IOException, DocumentException{
         FileInputStream in = null;
         try{
             in =new FileInputStream(fileName);
-            byte[] pdfBytes = new byte[in.available()];
+            pdfBytes = new byte[in.available()];
             in.read(pdfBytes);
-            init(pdfBytes);
+            init();
         }finally{
             in.close();
         }
     }
 
-    private void init(byte[] pdfBytes) throws DocumentException, IOException{
-        logger.info("初始化开始");
+    private void init() throws DocumentException, IOException{
+        logger.info("初始化开�?");
         reader = new PdfReader(pdfBytes);
         output = new ByteArrayOutputStream();
         stamper = new PdfStamper(reader, output);
-        canvas = stamper.getOverContent(1);
-        setFont(10);//WL Hard Code.
-        logger.info("初始化成功");
+        int total = reader.getNumberOfPages();
+        for(int i = 0 ; i < total ; i++) {
+            canvases.add(stamper.getOverContent(i+1));
+        }
+        parse = new PdfPositionParse(this.pdfBytes);
+        setFont(10);
+        logger.info("初始化成�?");
     }
 
     private void close() throws DocumentException, IOException{
@@ -69,53 +76,75 @@ public class PdfReplacer {
         }
 
         output=null;
-        replaceRegionMap=null;
-        replaceTextMap=null;
     }
 
-    public void replaceText(float x, float y, float w,float h, String text){
-        ReplaceRegion region = new ReplaceRegion(text); 	//用文本作为别名
-        region.setH(h);
-        region.setW(w);
-        region.setX(x);
-        region.setY(y);
-        addReplaceRegion(region);
-        this.replaceText(text, text);
+    public void replaceTextGetFontByself(String find, String replace){
+        parse.addReplaceText(find, replace, 0 ,null);
     }
 
-    public void replaceText(String name, String text){
-        this.replaceTextMap.put(name, text);
+    public void replaceText(String find, String replace){
+        parse.addReplaceText(find, replace, 0 ,null);
     }
 
+    public void replaceText(String find, String replace,int fontSize){
+        parse.addReplaceText(find, replace, fontSize ,null);
+    }
+
+    public void replaceText(String find, String replace, int fontSize, BaseColor fillColor){
+        parse.addReplaceText(find, replace,fontSize,fillColor);
+    }
+
+    public void replaceText(String find, String replace, BaseColor fillColor){
+        parse.addReplaceText(find, replace,0,fillColor);
+    }
     /**
      * 替换文本
      * @throws IOException
      * @throws DocumentException
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
      */
     private void process() throws DocumentException, IOException{
         try{
             parseReplaceText();
-            canvas.saveState();
-            Set<Entry<String, ReplaceRegion>> entrys = replaceRegionMap.entrySet();
-            for (Entry<String, ReplaceRegion> entry : entrys) {
-                ReplaceRegion value = entry.getValue();
-                canvas.setColorFill(BaseColor.WHITE);//WL change it from RED to WHITE
-                canvas.rectangle(value.getX(),value.getY(),value.getW(),value.getH());
+            int page = 1;
+            for (PdfContentByte canvas : canvases) {
+                Collection<ReplaceRegion> replaceRegions= this.pageRegions.get(page);
+                if(!replaceRegions.isEmpty()) {
+                    canvas.saveState();
+                    for (ReplaceRegion replaceRegion : replaceRegions) {
+                        List<ReplaceRegion.Region> regoins = replaceRegion.getRegions();
+                        for (ReplaceRegion.Region region : regoins) {
+                            if(region.getFillColor() != null) {
+                                canvas.setColorFill(region.getFillColor());
+                            }else {
+                                canvas.setColorFill(BaseColor.WHITE);
+                            }
+                            canvas.rectangle(region.getX(),region.getY(),region.getW(),region.getH());
+                        }
+
+                    }
+                    canvas.fill();
+                    canvas.restoreState();
+                    //�?始写入文�?
+                    canvas.beginText();
+                    for (ReplaceRegion replaceRegion : replaceRegions) {
+                        List<ReplaceRegion.Region> regoins = replaceRegion.getRegions();
+                        for (ReplaceRegion.Region region : regoins) {
+                            //设置字体
+                            int fontSize = getFontSize();
+                            if(region.getFontSize() != 0) {
+                                fontSize = region.getFontSize();
+                            }
+                            canvas.setFontAndSize(font.getBaseFont(), fontSize);
+                            canvas.setTextMatrix(region.getX(),region.getY()+2/*修正背景与文本的相对位置*/);
+                            canvas.showText(region.getNewText());
+                        }
+
+                    }
+                    canvas.endText();
+                }
+                page ++;
             }
-            canvas.fill();
-            canvas.restoreState();
-            //开始写入文本
-            canvas.beginText();
-            for (Entry<String, ReplaceRegion> entry : entrys) {
-                ReplaceRegion value = entry.getValue();
-                //设置字体
-                canvas.setFontAndSize(font.getBaseFont(), getFontSize());//WL Need change font size
-                canvas.setTextMatrix(value.getX(),value.getY()+2/*修正背景与文本的相对位置*/);
-                canvas.showText((String) replaceTextMap.get(value.getAliasName()));
-            }
-            canvas.endText();
+
         }finally{
             if(stamper != null){
                 stamper.close();
@@ -125,36 +154,18 @@ public class PdfReplacer {
 
     /**
      * 未指定具体的替换位置时，系统自动查找位置
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
      */
     private void parseReplaceText() {
-        PdfPositionParse parse = new PdfPositionParse(reader);
-        Set<Entry<String, Object>> entrys = this.replaceTextMap.entrySet();
-        for (Entry<String, Object> entry : entrys) {
-            if(this.replaceRegionMap.get(entry.getKey()) == null){
-                parse.addFindText(entry.getKey());
-            }
-        }
-
         try {
-            Map<String, ReplaceRegion> parseResult = parse.parse();
-            Set<Entry<String, ReplaceRegion>> parseEntrys = parseResult.entrySet();
-            for (Entry<String, ReplaceRegion> entry : parseEntrys) {
-                if(entry.getValue() != null){
-                    this.replaceRegionMap.put(entry.getKey(), entry.getValue());
-                }
-            }
+            parse.parse();
+            pageRegions = parse.getPageRegions();
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
-
     }
 
     /**
      * 生成新的PDF文件
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
      * @param fileName
      * @throws DocumentException
      * @throws IOException
@@ -178,10 +189,23 @@ public class PdfReplacer {
         logger.info("文件生成成功");
     }
 
+    public void toPdf(OutputStream out) throws DocumentException, IOException{
+        try{
+            process();
+            out.write(output.toByteArray());
+            out.flush();
+        }catch(IOException e){
+            logger.error(e.getMessage(), e);
+            throw e;
+        }finally{
+            close();
+        }
+        logger.info("文件输出成功");
+    }
+
+
     /**
      * 将生成的PDF文件转换成二进制数组
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
      * @return
      * @throws DocumentException
      * @throws IOException
@@ -189,32 +213,11 @@ public class PdfReplacer {
     public byte[] toBytes() throws DocumentException, IOException{
         try{
             process();
-            logger.info("二进制数据生成成功");
+            logger.info("二进制数据生成成�?");
             return output.toByteArray();
         }finally{
             close();
         }
-    }
-
-    /**
-     * 添加替换区域
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
-     * @param replaceRegion
-     */
-    public void addReplaceRegion(ReplaceRegion replaceRegion){
-        this.replaceRegionMap.put(replaceRegion.getAliasName(), replaceRegion);
-    }
-
-    /**
-     * 通过别名得到替换区域
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
-     * @param aliasName
-     * @return
-     */
-    public ReplaceRegion getReplaceRegion(String aliasName){
-        return this.replaceRegionMap.get(aliasName);
     }
 
     public int getFontSize() {
@@ -223,8 +226,6 @@ public class PdfReplacer {
 
     /**
      * 设置字体大小
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
      * @param fontSize
      * @throws DocumentException
      * @throws IOException

@@ -3,10 +3,10 @@ package com.windy.codepractice.mvc.pdf;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Font;
 import com.windy.codepractice.mvc.pdf.PositionRenderListener;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
@@ -14,8 +14,12 @@ import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
 
 public class PdfPositionParse {
     private PdfReader reader;
-    private List<String> findText = new ArrayList<String>();	//需要查找的文本
+    private Map<String,String> replaceText = new HashMap<>();
+    private Map<String,Integer> replaceFontSize = new HashMap<>();
+    private Map<String, BaseColor> replaceFileColor = new HashMap<>();
+    private Map<String, Font> replaceFont = new HashMap<>();
     private PdfReaderContentParser parser;
+    private Map<Integer, Collection<ReplaceRegion>> pageRegions = new HashMap<>();
 
     public PdfPositionParse(String fileName) throws IOException{
         FileInputStream in = null;
@@ -33,21 +37,10 @@ public class PdfPositionParse {
         init(bytes);
     }
 
-    private boolean needClose = true;
-    /**
-     * 传递进来的reader不会在PdfPositionParse结束时关闭
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
-     * @param reader
-     */
-    public PdfPositionParse(PdfReader reader){
-        this.reader = reader;
-        parser = new PdfReaderContentParser(reader);
-        needClose = false;
-    }
-
-    public void addFindText(String text){
-        this.findText.add(text);
+    public void addReplaceText(String find,String replace,int fontSize,BaseColor fillColor){
+        this.replaceText.put(find,replace);
+        this.replaceFontSize.put(find, fontSize);
+        this.replaceFileColor.put(find, fillColor);
     }
 
     private void init(byte[] bytes) throws IOException {
@@ -57,23 +50,33 @@ public class PdfPositionParse {
 
     /**
      * 解析文本
-     * @user : caoxu-yiyang@qq.com
-     * @date : 2016年11月9日
      * @throws IOException
      */
-    public Map<String, ReplaceRegion> parse() throws IOException{
+    public void parse() throws IOException{
         try{
-            if(this.findText.size() == 0){
-                throw new NullPointerException("没有需要查找的文本");
+            if(this.replaceText.isEmpty()){
+                throw new NullPointerException("没有找到要查找的文本");
             }
-            PositionRenderListener listener = new PositionRenderListener(this.findText);
-            parser.processContent(1, listener);
-            return listener.getResult();
+            int total = reader.getNumberOfPages();
+            for(int i = 0 ; i < total ; i++) {
+                PositionRenderListener listener = new PositionRenderListener(replaceText,replaceFontSize,replaceFileColor);
+                int page = i + 1;
+                parser.processContent(page, listener);
+                this.pageRegions.put(page, listener.getResult());
+            }
+
         }finally{
-            if(reader != null && needClose){
+            if(reader != null){
                 reader.close();
             }
         }
+    }
+
+    /**
+     * @return the pageRegions
+     */
+    public Map<Integer,Collection<ReplaceRegion>> getPageRegions() {
+        return pageRegions;
     }
 
 }

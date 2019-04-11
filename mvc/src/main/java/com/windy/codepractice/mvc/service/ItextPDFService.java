@@ -15,7 +15,7 @@ public class ItextPDFService {
     public void writePdf(String pdfPath,String pdfOutFile) throws IOException, DocumentException {
 
         PdfReplacer textReplacer = new PdfReplacer(pdfPath);
-        textReplacer.replaceText("123456", "654321");
+        textReplacer.replaceText("123456", "654321001223",5);
         textReplacer.toPdf(pdfOutFile);
     }
 }
