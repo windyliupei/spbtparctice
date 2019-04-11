@@ -112,7 +112,9 @@ public class ReadController {
         //String result = grpcClientService.sendMessage("ali");
         //String result = grpcClientService.entityByName("ali").toString();
 
-        itextPDFService.writePdf(pdfPath,pdfOutFile);
+        //itextPDFService.writePdf(pdfPath,pdfOutFile);
+
+        com.windy.Common.Excel2Pdf.excel2pdf(testFile,pdfOutFile);
 
 
         //success
