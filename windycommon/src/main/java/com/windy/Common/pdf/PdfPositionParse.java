@@ -1,4 +1,4 @@
-package com.windy.codepractice.mvc.pdf;
+package com.windy.Common.pdf;
 
 
 import java.io.FileInputStream;
@@ -7,7 +7,6 @@ import java.util.*;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Font;
-import com.windy.codepractice.mvc.pdf.PositionRenderListener;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
 

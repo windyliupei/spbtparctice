@@ -1,4 +1,4 @@
-package com.windy.codepractice.mvc.excel;
+package com.windy.Common.excel;
 //ref:https://www.cnblogs.com/dzpykj/p/8417738.html
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;

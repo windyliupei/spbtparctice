@@ -1,4 +1,4 @@
-package com.windy.codepractice.mvc.pdf;
+package com.windy.Common.pdf;
 
 import com.itextpdf.text.BaseColor;
 

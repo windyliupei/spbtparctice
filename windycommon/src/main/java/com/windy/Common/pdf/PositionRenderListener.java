@@ -1,4 +1,4 @@
-package com.windy.codepractice.mvc.pdf;
+package com.windy.Common.pdf;
 
 
 import java.util.*;
@@ -6,7 +6,6 @@ import java.util.*;
 import com.itextpdf.awt.geom.Rectangle2D;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.pdf.parser.TextRenderInfo;
-import com.windy.codepractice.mvc.pdf.ReplaceRegion;
 import com.itextpdf.text.pdf.parser.ImageRenderInfo;
 import com.itextpdf.text.pdf.parser.RenderListener;
 

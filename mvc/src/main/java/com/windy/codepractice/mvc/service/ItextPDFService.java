@@ -1,12 +1,9 @@
 package com.windy.codepractice.mvc.service;
 
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.pdf.*;
-import com.windy.codepractice.mvc.pdf.PdfReplacer;
+import com.windy.Common.pdf.PdfReplacer;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 @Service

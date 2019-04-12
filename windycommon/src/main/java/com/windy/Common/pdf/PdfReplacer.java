@@ -1,9 +1,8 @@
-package com.windy.codepractice.mvc.pdf;
+package com.windy.Common.pdf;
 
 
 import java.io.*;
 import java.util.*;
-import java.util.Map.Entry;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
