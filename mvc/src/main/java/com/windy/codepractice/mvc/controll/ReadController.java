@@ -1,22 +1,17 @@
 package com.windy.codepractice.mvc.controll;
 
 import com.itextpdf.text.DocumentException;
+//import com.windy.Common.aspx.Excel2Pdf;
 import com.windy.codepractice.mvc.AjaxResult;
-import com.windy.codepractice.mvc.excel.ExcelData;
 import com.windy.codepractice.mvc.service.GrpcClientService;
 import com.windy.codepractice.mvc.service.ItextPDFService;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.Iterator;
 
 //import com.itextpdf.text.*;
 //import com.itextpdf.text.pdf.*;
@@ -114,7 +108,7 @@ public class ReadController {
 
         //itextPDFService.writePdf(pdfPath,pdfOutFile);
 
-        com.windy.Common.Excel2Pdf.excel2pdf(testFile,pdfOutFile);
+        //Excel2Pdf.excel2pdf(testFile,pdfOutFile);
 
 
         //success
