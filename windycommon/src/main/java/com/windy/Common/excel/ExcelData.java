@@ -81,7 +81,6 @@ public class ExcelData {
                 cell = getCell(cellAddress, cell, targetSheet);
             }
         }
-
         return cell;
     }
 
@@ -127,17 +126,15 @@ public class ExcelData {
                 cells = getCells(cellRange,targetSheet);
             }
         }
-
         return cells;
     }
-
 
     /**
      * 根据文件路径获取Workbook对象
      * @param filePath 文件全路径
      */
     public static Workbook getWorkBookWithoutClose(String filePath)
-            throws EncryptedDocumentException, InvalidFormatException, IOException {
+            throws EncryptedDocumentException,IOException {
         InputStream is = null;
         Workbook wb = null;
         checkFile(filePath);
@@ -290,7 +287,7 @@ public class ExcelData {
         return excelData;
     }
 
-    public static ExcelData readExcel(String filePath) throws IOException, InvalidFormatException {
+    public static ExcelData readExcel(String filePath) throws IOException {
 
         //获得Workbook工作薄对象
         Workbook workbook = ExcelData.getWorkBookWithoutClose(filePath);

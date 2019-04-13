@@ -7,6 +7,9 @@ import java.util.HashMap;
 
 public class CellRange {
 
+    private String startAddress;
+    private String endAddress;
+
     //startAddress :A1
     //endAddress :B5
     public CellRange(String startAddress, String endAddress) {
@@ -57,11 +60,9 @@ public class CellRange {
         int endColumnIndex = getColumnIndex(this.endAddress);
 
         if ( (cellRowIndex>=startRowIndex &&  cellRowIndex<=endRowIndex)
-        &&   (cellColIndex>=startColumnIndex &&  cellColIndex<=endColumnIndex)
-        ){
+        &&   (cellColIndex>=startColumnIndex &&  cellColIndex<=endColumnIndex)){
             return true;
         }
-
         return false;
     }
 
@@ -94,8 +95,4 @@ public class CellRange {
         HashMap<String,Integer> indexAlphaMapping = ColumnAlphaMapping.getIndexAlphaMapping();
         return indexAlphaMapping.get(rowColumn[0]);
     }
-
-    private String startAddress;
-    private String endAddress;
-
 }
