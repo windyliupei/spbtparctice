@@ -1,10 +1,15 @@
 package com.windy.Common.pdf;
 
 
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.*;
 
 import com.itextpdf.awt.geom.Rectangle2D;
 import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.log.Logger;
+import com.itextpdf.text.log.LoggerFactory;
+import com.itextpdf.text.pdf.parser.GraphicsState;
 import com.itextpdf.text.pdf.parser.TextRenderInfo;
 import com.itextpdf.text.pdf.parser.ImageRenderInfo;
 import com.itextpdf.text.pdf.parser.RenderListener;
@@ -13,6 +18,7 @@ import com.itextpdf.text.pdf.parser.RenderListener;
 
 public class PositionRenderListener implements RenderListener{
 
+    private static final Logger logger = LoggerFactory.getLogger(PositionRenderListener.class);
     private static class Replacement{
         private String keyString;
         private String newText;
@@ -90,8 +96,28 @@ public class PositionRenderListener implements RenderListener{
                 result.put(keyString, replaceRegion);
             }
             Rectangle2D.Float bound = textInfo.getBaseline().getBoundingRectange();
-            int fontSize = this.replaceFontSize.get(keyString) == null ? 0 : this.replaceFontSize.get(keyString);
+            //反射获得实际的 fontsize
+            int realFontSize = -1;
+            try {
+                Field fieldGs = TextRenderInfo.class.getDeclaredField("gs");
+                fieldGs.setAccessible(true);
 
+                GraphicsState gs = (GraphicsState)fieldGs.get(textInfo);
+                float realFontSizeF = gs.getFontSize();
+
+                BigDecimal b = new BigDecimal(realFontSizeF);
+                realFontSize = b.setScale(0,BigDecimal.ROUND_HALF_UP).intValue();
+
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                logger.error("reflect error:",e);
+            }
+            int fontSize = 0;
+            //反射获取成功
+            if (realFontSize!= -1){
+                fontSize = realFontSize;
+            }else{
+                fontSize = this.replaceFontSize.get(keyString) == null ? 0 : this.replaceFontSize.get(keyString);
+            }
             replaceRegion.addRegion(bound.x, bound.y-this.fixHeight, bound.width, bound.height == 0 ? defaultH : bound.height,this.replaceFileColor.get(keyString),fontSize,replacement.getNewText());
         }
     }
@@ -102,7 +128,8 @@ public class PositionRenderListener implements RenderListener{
         for (Map.Entry<String, String> entry : entrys) {
             String key = entry.getKey();
             String value = entry.getValue();
-            if(input.indexOf(key) != -1) {
+            //if(input.indexOf(key) != -1) {
+            if(input.equals(key)){//全字匹配
                 Replacement replacement = new Replacement();
                 replacement.setKeyString(key);
                 replacement.setNewText(input.replace(key, value));
